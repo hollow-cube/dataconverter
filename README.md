@@ -20,4 +20,4 @@ technical details about the datafixes and differences from the Mojang fixes.
 
 ## License
 
-This project is licensed under [LGPL-3](LICENSE), like the original.
+This project is licensed under [GPL-3.0](LICENSE), like the original.
