@@ -73,7 +73,7 @@ publishing.publications.create<MavenPublication>("maven") {
 
         licenses {
             license {
-                name.set("LGPL-3.0")
+                name.set("GPL-3.0")
                 url.set("https://github.com/hollow-cube/dataconverter/blob/main/LICENSE")
             }
         }
