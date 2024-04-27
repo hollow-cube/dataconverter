@@ -240,7 +240,7 @@ public final class MCVersionRegistry {
                 3825,
                 3828,
                 3833
-                // All up to 1.20.5
+                // All up to 1.20.6-rc1
         };
         List<Integer> converterVersions = new ArrayList<>(mcConverterVersions.length);
         for (final int version : mcConverterVersions) {
@@ -264,6 +264,7 @@ public final class MCVersionRegistry {
 
         registerSubVersion(MCVersions.V24W04A + 1, 1);
         registerSubVersion(MCVersions.V24W04A + 2, 1);
+        registerSubVersion(MCVersions.V24W04A + 2, 2);
 
         registerSubVersion(MCVersions.V24W07A + 1, 1);
         registerSubVersion(MCVersions.V24W07A + 1, 2);
