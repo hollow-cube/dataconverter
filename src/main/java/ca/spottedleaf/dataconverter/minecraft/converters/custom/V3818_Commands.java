@@ -7,15 +7,25 @@ import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
 import ca.spottedleaf.dataconverter.types.ListType;
 import ca.spottedleaf.dataconverter.types.MapType;
 import ca.spottedleaf.dataconverter.types.ObjectType;
-import ca.spottedleaf.dataconverter.util.ExternalDataProvider;
-import ca.spottedleaf.dataconverter.util.GsonUtil;
-import com.google.gson.*;
+import ca.spottedleaf.dataconverter.util.CommandArgumentUpgrader;
+import com.google.common.base.Suppliers;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.JsonOps;
-import net.kyori.adventure.nbt.*;
-
-import java.io.IOException;
+import net.minecraft.SharedConstants;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.TagParser;
+import net.minecraft.util.GsonHelper;
 import java.util.Iterator;
+import java.util.function.Supplier;
 
 public final class V3818_Commands {
 
@@ -23,10 +33,10 @@ public final class V3818_Commands {
 
     private static final boolean DISABLE_COMMAND_CONVERTER = Boolean.getBoolean("Paper.DisableCommandConverter");
 
-    public static String toCommandFormat(final CompoundBinaryTag components) {
+    public static String toCommandFormat(final CompoundTag components) {
         final StringBuilder ret = new StringBuilder();
         ret.append('[');
-        for (final Iterator<String> iterator = components.keySet().iterator(); iterator.hasNext(); ) {
+        for (final Iterator<String> iterator = components.getAllKeys().iterator(); iterator.hasNext();) {
             final String key = iterator.next();
             ret.append(key);
             ret.append('=');
@@ -40,10 +50,10 @@ public final class V3818_Commands {
         return ret.toString();
     }
 
-    public static JsonElement convertToJson(final BinaryTag tag) {
+    public static JsonElement convertToJson(final Tag tag) {
         // We don't have conversion utilities, but DFU does...
 
-        return new Dynamic<>(ExternalDataProvider.get().nbtOps(), tag).convert(JsonOps.INSTANCE).getValue();
+        return new Dynamic<>(NbtOps.INSTANCE, tag).convert(JsonOps.INSTANCE).getValue();
     }
 
     public static void walkComponent(final JsonElement primitive) {
@@ -65,8 +75,8 @@ public final class V3818_Commands {
                 final String cmdString = cmd.getAsString();
 
                 if ((actionString.equals("suggest_command") && cmdString.startsWith("/")) || actionString.equals("run_command")) {
-                    final Object res = MCTypeRegistry.DATACONVERTER_CUSTOM_TYPE_COMMAND.convert(
-                            cmdString, MCVersions.V1_20_4, ExternalDataProvider.get().dataVersion()
+                    final Object res = MCDataConverter.convert(
+                        MCTypeRegistry.DATACONVERTER_CUSTOM_TYPE_COMMAND, cmdString, MCVersions.V1_20_4, SharedConstants.getCurrentVersion().getDataVersion().getVersion()
                     );
                     if (res instanceof String newCmd) {
                         clickEvent.addProperty("value", newCmd);
@@ -85,44 +95,43 @@ public final class V3818_Commands {
                     final JsonElement tagElement = contents.get("tag");
 
                     if (idElement instanceof JsonPrimitive idPrimitive) {
-                        final CompoundBinaryTag.Builder itemNBT = CompoundBinaryTag.builder();
+                        final CompoundTag itemNBT = new CompoundTag();
                         itemNBT.putString("id", idPrimitive.getAsString());
                         itemNBT.putInt("Count", 1);
 
                         if (tagElement instanceof JsonPrimitive tagPrimitive) {
                             try {
-                                final CompoundBinaryTag tag = TagStringIO.get().asCompound(tagPrimitive.getAsString());
+                                final CompoundTag tag = TagParser.parseTag(tagPrimitive.getAsString());
                                 itemNBT.put("tag", tag);
-                            } catch (final IOException ignore) {
-                            }
+                            } catch (final CommandSyntaxException ignore) {}
                         }
 
-                        final CompoundBinaryTag converted = MCDataConverter.convertTag(
-                                MCTypeRegistry.ITEM_STACK, itemNBT.build(), MCVersions.V1_20_4,
-                                ExternalDataProvider.get().dataVersion()
+                        final CompoundTag converted = MCDataConverter.convertTag(
+                                MCTypeRegistry.ITEM_STACK, itemNBT, MCVersions.V1_20_4,
+                                SharedConstants.getCurrentVersion().getDataVersion().getVersion()
                         );
 
                         contents.remove("tag");
 
                         contents.addProperty("id", converted.getString("id"));
 
-                        if (converted.get("components") instanceof CompoundBinaryTag componentsTag) {
-                            contents.add("components", convertToJson(componentsTag));
+                        if (converted.contains("components", Tag.TAG_COMPOUND)) {
+                            contents.add("components", convertToJson(converted.getCompound("components")));
                         }
                     }
                 }
                 final JsonElement valueElement = hoverEvent.get("value");
                 if (valueElement instanceof JsonPrimitive valuePrimitive) {
                     try {
-                        final CompoundBinaryTag itemNBT = TagStringIO.get().asCompound(valuePrimitive.getAsString());
-                        if (itemNBT.get("id") instanceof StringBinaryTag idTag) {
-                            final boolean explicitCount = itemNBT.get("Count") instanceof NumberBinaryTag;
+                        final CompoundTag itemNBT = TagParser.parseTag(valuePrimitive.getAsString());
+                        if (itemNBT.contains("id", Tag.TAG_STRING)) {
+                            final boolean explicitCount = itemNBT.contains("Count", Tag.TAG_ANY_NUMERIC);
                             if (!explicitCount) {
                                 itemNBT.putInt("Count", 1);
                             }
-                            final CompoundBinaryTag converted = MCDataConverter.convertTag(
-                                    MCTypeRegistry.ITEM_STACK, itemNBT, MCVersions.V1_20_4,
-                                    ExternalDataProvider.get().dataVersion()
+                            final CompoundTag converted = MCDataConverter.convertTag(
+                                MCTypeRegistry.ITEM_STACK, itemNBT, MCVersions.V1_20_4,
+                                SharedConstants.getCurrentVersion().getDataVersion().getVersion()
                             );
 
                             hoverEvent.remove("value");
@@ -135,12 +144,11 @@ public final class V3818_Commands {
                                 contents.addProperty("count", converted.getInt("count"));
                             }
 
-                            if (converted.getCompound("components") instanceof CompoundBinaryTag componentsTag) {
-                                contents.add("components", convertToJson(componentsTag));
+                            if (converted.contains("components", Tag.TAG_COMPOUND)) {
+                                contents.add("components", convertToJson(converted.getCompound("components")));
                             }
                         }
-                    } catch (final IOException ignore) {
-                    }
+                    } catch (final CommandSyntaxException ignore) {}
                 }
             }
         }
@@ -161,7 +169,7 @@ public final class V3818_Commands {
         try {
             final JsonElement element = JsonParser.parseString(json);
             walkComponent(element);
-            return GsonUtil.toStableString(element);
+            return GsonHelper.toStableString(element);
         } catch (final JsonParseException ex) {
             return json;
         }
@@ -173,21 +181,20 @@ public final class V3818_Commands {
             return;
         }
         // Command is already registered in walker for command blocks
-        //todo
-//        MCTypeRegistry.DATACONVERTER_CUSTOM_TYPE_COMMAND.addConverter(new DataConverter<>(VERSION, 5) {
-//            private static final Supplier<CommandArgumentUpgrader> COMMAND_UPGRADER = Suppliers.memoize(() ->
-//                    CommandArgumentUpgrader.upgrader_1_20_4_to_1_20_5(999));
-//
-//            @Override
-//            public Object convert(final Object data, final long sourceVersion, final long toVersion) {
-//                if (!(data instanceof String cmd)) {
-//                    return null;
-//                }
-//                // We use startsWith("/") because we aren't supporting WorldEdit style commands,
-//                // and passing the context of whether the use supports leading slash would be high effort low return
-//                return COMMAND_UPGRADER.get().upgradeCommandArguments(cmd, cmd.startsWith("/"));
-//            }
-//        });
+        MCTypeRegistry.DATACONVERTER_CUSTOM_TYPE_COMMAND.addConverter(new DataConverter<>(VERSION, 5) {
+            private static final Supplier<CommandArgumentUpgrader> COMMAND_UPGRADER = Suppliers.memoize(() ->
+                    CommandArgumentUpgrader.upgrader_1_20_4_to_1_20_5(999));
+
+            @Override
+            public Object convert(final Object data, final long sourceVersion, final long toVersion) {
+                if (!(data instanceof String cmd)) {
+                    return null;
+                }
+                // We use startsWith("/") because we aren't supporting WorldEdit style commands,
+                // and passing the context of whether the use supports leading slash would be high effort low return
+                return COMMAND_UPGRADER.get().upgradeCommandArguments(cmd, cmd.startsWith("/"));
+            }
+        });
 
         // command is not registered in any walkers for books/signs, and we don't want to do that as we would parse
         // the json every walk. instead, we create a one time converter to avoid the additional cost of parsing the json
