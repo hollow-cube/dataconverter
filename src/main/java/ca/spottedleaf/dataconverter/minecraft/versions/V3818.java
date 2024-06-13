@@ -3,7 +3,6 @@ package ca.spottedleaf.dataconverter.minecraft.versions;
 import ca.spottedleaf.dataconverter.converters.DataConverter;
 import ca.spottedleaf.dataconverter.converters.datatypes.DataWalker;
 import ca.spottedleaf.dataconverter.minecraft.MCVersions;
-import ca.spottedleaf.dataconverter.minecraft.converters.custom.V3818_Commands;
 import ca.spottedleaf.dataconverter.minecraft.converters.helpers.RenameHelper;
 import ca.spottedleaf.dataconverter.minecraft.converters.itemstack.ConverterItemStackToDataComponents;
 import ca.spottedleaf.dataconverter.minecraft.converters.particle.ConverterParticleToNBT;
@@ -13,6 +12,7 @@ import ca.spottedleaf.dataconverter.types.ListType;
 import ca.spottedleaf.dataconverter.types.MapType;
 import ca.spottedleaf.dataconverter.types.ObjectType;
 import ca.spottedleaf.dataconverter.types.Types;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,7 +20,7 @@ public final class V3818 {
 
     private static final int VERSION = MCVersions.V24W07A + 1;
 
-    private static final String[] BANNER_COLOURS = new String[] {
+    private static final String[] BANNER_COLOURS = new String[]{
             "white",
             "orange",
             "magenta",
@@ -97,6 +97,7 @@ public final class V3818 {
         // Step 1
         MCTypeRegistry.TILE_ENTITY.addConverterForId("minecraft:banner", new DataConverter<>(VERSION, 1) {
             private static final Map<String, String> PATTERN_UPDATE = new HashMap<>();
+
             static {
                 PATTERN_UPDATE.put("b", "minecraft:base");
                 PATTERN_UPDATE.put("bl", "minecraft:square_bottom_left");
@@ -273,7 +274,7 @@ public final class V3818 {
                 return null;
             }
 
-            final MapType<String> root = (MapType<String>)input;
+            final MapType<String> root = (MapType<String>) input;
 
             WalkerUtils.convert(MCTypeRegistry.ITEM_STACK, root, "item", fromVersion, toVersion);
             WalkerUtils.convert(MCTypeRegistry.BLOCK_STATE, root, "block_state", fromVersion, toVersion);
@@ -298,7 +299,7 @@ public final class V3818 {
         });
 
         // Custom converter for converting commands inside signs, books, command blocks
-        V3818_Commands.register_5();
+//        V3818_Commands.register_5();
 
         // Step 6
         MCTypeRegistry.ENTITY.addConverterForId("minecraft:area_effect_cloud", new DataConverter<>(VERSION, 6) {
@@ -335,5 +336,6 @@ public final class V3818 {
         });
     }
 
-    private V3818() {}
+    private V3818() {
+    }
 }
