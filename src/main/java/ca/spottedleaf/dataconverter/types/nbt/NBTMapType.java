@@ -419,8 +419,11 @@ public final class NBTMapType implements MapType<String> {
         final Object tag = this.map.get(key);
         if (tag instanceof NBTListType l)
             return l;
-        if (tag instanceof ListBinaryTag)
-            return new NBTListType((ListBinaryTag) tag);
+        if (tag instanceof ListBinaryTag) {
+            var map = new NBTListType((ListBinaryTag) tag);
+            this.map.put(key, map);
+            return map;
+        }
         return dfl;
     }
 
@@ -439,8 +442,11 @@ public final class NBTMapType implements MapType<String> {
         final Object tag = this.map.get(key);
         if (tag instanceof NBTMapType m)
             return m;
-        if (tag instanceof CompoundBinaryTag)
-            return new NBTMapType((CompoundBinaryTag) tag);
+        if (tag instanceof CompoundBinaryTag) {
+            var map = new NBTMapType((CompoundBinaryTag) tag);
+            this.map.put(key, map);
+            return map;
+        }
         return dfl;
     }
 
