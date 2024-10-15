@@ -15,7 +15,7 @@ import java.util.UUID;
 
 public final class V3945 {
 
-    private static final int VERSION = MCVersions.V2420WA + 1;
+    private static final int VERSION = MCVersions.V24W20A + 1;
 
     private static final Map<UUID, String> UUID_TO_ID = Map.ofEntries(
             Map.entry(UUID.fromString("736565d2-e1a7-403d-a3f8-1aeb3e302542"), "minecraft:creative_mode_block_range"),
@@ -129,9 +129,7 @@ public final class V3945 {
         return retList;
     }
 
-
     public static void register() {
-
         MCTypeRegistry.ITEM_STACK.addStructureConverter(new DataConverter<>(VERSION) {
             @Override
             public MapType<String> convert(final MapType<String> data, final long sourceVersion, final long toVersion) {

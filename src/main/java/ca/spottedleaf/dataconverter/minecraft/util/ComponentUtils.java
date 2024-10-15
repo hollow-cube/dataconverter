@@ -24,6 +24,10 @@ public final class ComponentUtils {
     }
 
     public static String retrieveTranslationString(final String possibleJson) {
+        if (possibleJson == null) {
+            return null;
+        }
+
         try {
             final JsonElement element = JsonParser.parseString(possibleJson);
 
