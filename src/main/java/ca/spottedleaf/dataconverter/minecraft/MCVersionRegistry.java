@@ -251,7 +251,7 @@ public final class MCVersionRegistry {
             4064,
             4067,
             4068,
-            // All up to 1.21.2-pre3
+            // All up to 1.21.2-rc1
         };
         List<Integer> converterVersions = new ArrayList<>(mcConverterVersions.length);
         for (final int version : mcConverterVersions) {
