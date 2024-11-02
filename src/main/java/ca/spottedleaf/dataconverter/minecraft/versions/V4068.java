@@ -5,11 +5,14 @@ import ca.spottedleaf.dataconverter.minecraft.MCVersions;
 import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
 import ca.spottedleaf.dataconverter.types.MapType;
 import ca.spottedleaf.dataconverter.types.TypeUtil;
-import com.google.common.escape.Escaper;
-import com.google.common.escape.Escapers;
 
 public final class V4068 {
-    public static final Escaper ESCAPER = Escapers.builder().addEscape('"', "\\\"").addEscape('\\', "\\\\").build();
+    // Used to be Escapers.builder().addEscape('"', "\\\"").addEscape('\\', "\\\\").build();
+    // This probably doesnt quite do the same things as guava, but it should be good enough.
+    public static String escape(String input) {
+        if (input == null) return null;
+        return input.replace("\\", "\\\\").replace("\"", "\\\"");
+    }
 
     private static final int VERSION = MCVersions.V24W38A + 2;
 
@@ -33,7 +36,7 @@ public final class V4068 {
             final MapType<String> lockComponents = typeUtil.createEmptyMap();
             newLock.setMap("components", lockComponents);
 
-            lockComponents.setString("minecraft:custom_name", ESCAPER.escape(lock));
+            lockComponents.setString("minecraft:custom_name", escape(lock));
         }
     }
 
@@ -60,5 +63,6 @@ public final class V4068 {
         });
     }
 
-    private V4068() {}
+    private V4068() {
+    }
 }
