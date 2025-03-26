@@ -305,10 +305,15 @@ public final class NBTListType implements ListType {
     @Override
     public MapType<String> getMap(final int index) {
         final Object tag = this.list.get(index); // does bound checking for us
-        if (!(tag instanceof CompoundBinaryTag)) {
+        if (tag instanceof CompoundBinaryTag compound) {
+            var map = new NBTMapType(compound);
+            this.list.set(index, map);
+            return map;
+        } else if (tag instanceof NBTMapType map) {
+            return map;
+        } else {
             throw new IllegalStateException();
         }
-        return new NBTMapType((CompoundBinaryTag) tag);
     }
 
     @Override

@@ -5,7 +5,7 @@ import ca.spottedleaf.dataconverter.minecraft.MCVersions;
 import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
 import ca.spottedleaf.dataconverter.types.MapType;
 import ca.spottedleaf.dataconverter.types.nbt.NBTMapType;
-import com.mojang.datafixers.util.Pair;
+import it.unimi.dsi.fastutil.objects.ObjectReferencePair;
 import net.kyori.adventure.nbt.CompoundBinaryTag;
 import net.kyori.adventure.nbt.TagStringIO;
 
@@ -16,7 +16,7 @@ public final class V4061 {
 
     private static final int VERSION = MCVersions.V24W34A + 1;
 
-    private static final Map<Pair<MapType<String>, MapType<String>>, String> CONVERT_MAP = new HashMap<>();
+    private static final Map<ObjectReferencePair<MapType<String>, MapType<String>>, String> CONVERT_MAP = new HashMap<>();
 
     static {
         addConversion("trial_chamber/breeze", "{simultaneous_mobs: 1.0f, simultaneous_mobs_added_per_player: 0.5f, spawn_potentials: [{data: {entity: {id: \"minecraft:breeze\"}}, weight: 1}], ticks_between_spawn: 20, total_mobs: 2.0f, total_mobs_added_per_player: 1.0f}", "{loot_tables_to_eject: [{data: \"minecraft:spawners/ominous/trial_chamber/key\", weight: 3}, {data: \"minecraft:spawners/ominous/trial_chamber/consumables\", weight: 7}], simultaneous_mobs: 2.0f, total_mobs: 4.0f}");
@@ -44,9 +44,9 @@ public final class V4061 {
 
         final CompoundBinaryTag ominousMerged = normalNBT.put(ominousNBT);
 
-        CONVERT_MAP.put(Pair.of(normalMapType, new NBTMapType(ominousNBT)), fullKey);
-        CONVERT_MAP.put(Pair.of(normalMapType, new NBTMapType(ominousMerged)), fullKey);
-        CONVERT_MAP.put(Pair.of(normalMapType, new NBTMapType(removeDefaults(ominousMerged))), fullKey);
+        CONVERT_MAP.put(ObjectReferencePair.of(normalMapType, new NBTMapType(ominousNBT)), fullKey);
+        CONVERT_MAP.put(ObjectReferencePair.of(normalMapType, new NBTMapType(ominousMerged)), fullKey);
+        CONVERT_MAP.put(ObjectReferencePair.of(normalMapType, new NBTMapType(removeDefaults(ominousMerged))), fullKey);
     }
 
     private static CompoundBinaryTag parseNBT(final String sNBT) {
@@ -96,7 +96,7 @@ public final class V4061 {
                     return null;
                 }
 
-                final String newKey = CONVERT_MAP.get(new Pair<>(normalConfig, ominousConfig));
+                final String newKey = CONVERT_MAP.get(ObjectReferencePair.of(normalConfig, ominousConfig));
                 if (newKey == null) {
                     return null;
                 }

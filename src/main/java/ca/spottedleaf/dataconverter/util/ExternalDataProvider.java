@@ -1,7 +1,5 @@
 package ca.spottedleaf.dataconverter.util;
 
-import com.mojang.serialization.DynamicOps;
-import net.kyori.adventure.nbt.BinaryTag;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -21,7 +19,5 @@ public interface ExternalDataProvider {
 
     @NotNull List<Integer> extraConverterVersions();
     @NotNull Class<?> extraVersionsClass();
-
-    @NotNull DynamicOps<BinaryTag> nbtOps();
 
 }

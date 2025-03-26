@@ -36,5 +36,6 @@ public final class V4175 {
         });
     }
 
-    private V4175() {}
+    private V4175() {
+    }
 }

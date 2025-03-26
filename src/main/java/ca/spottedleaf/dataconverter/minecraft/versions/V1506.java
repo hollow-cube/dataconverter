@@ -6,15 +6,10 @@ import ca.spottedleaf.dataconverter.minecraft.datatypes.MCTypeRegistry;
 import ca.spottedleaf.dataconverter.types.MapType;
 import ca.spottedleaf.dataconverter.types.json.JsonMapType;
 import ca.spottedleaf.dataconverter.types.json.JsonTypeUtil;
-import ca.spottedleaf.dataconverter.types.nbt.NBTMapType;
-import ca.spottedleaf.dataconverter.util.ExternalDataProvider;
 import ca.spottedleaf.dataconverter.util.GsonUtil;
 import com.google.gson.JsonObject;
-import com.mojang.datafixers.util.Pair;
-import com.mojang.serialization.Dynamic;
-import com.mojang.serialization.DynamicOps;
-import net.kyori.adventure.nbt.BinaryTag;
-import net.kyori.adventure.nbt.CompoundBinaryTag;
+import it.unimi.dsi.fastutil.ints.IntObjectPair;
+import it.unimi.dsi.fastutil.objects.ObjectReferencePair;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -117,18 +112,12 @@ public final class V1506 {
         });
     }
 
-    private static MapType<String> convert(final String param0) {
-        final Dynamic<BinaryTag> dynamic = convert(param0, ExternalDataProvider.get().nbtOps());
-
-        return new NBTMapType((CompoundBinaryTag) dynamic.getValue());
-    }
-
     // Yeah I ain't touching that. This is basically magic value hell.
-    private static <T> Dynamic<T> convert(final String generatorSettings, final DynamicOps<T> ops) {
+    private static <T> MapType<String> convert(final String generatorSettings) {
         final Iterator<String> splitSettings = List.of(generatorSettings.split(";")).iterator();
         String biome = "minecraft:plains";
         final Map<String, Map<String, String>> structures = new HashMap<>();
-        final List<Pair<Integer, String>> layers;
+        final List<IntObjectPair<String>> layers;
         if (!generatorSettings.isEmpty() && splitSettings.hasNext()) {
             layers = getLayersInfoFromString(splitSettings.next());
             if (!layers.isEmpty()) {
@@ -164,18 +153,21 @@ public final class V1506 {
             }
         } else {
             layers = new ArrayList<>();
-            layers.add(Pair.of(1, "minecraft:bedrock"));
-            layers.add(Pair.of(2, "minecraft:dirt"));
-            layers.add(Pair.of(1, "minecraft:grass_block"));
+            layers.add(IntObjectPair.of(1, "minecraft:bedrock"));
+            layers.add(IntObjectPair.of(2, "minecraft:dirt"));
+            layers.add(IntObjectPair.of(1, "minecraft:grass_block"));
             structures.put("village", new HashMap<>());
         }
 
-        final T layerTag = ops.createList(layers.stream().map((param1x) -> ops.createMap(Map.of(ops.createString("height"), ops.createInt(param1x.getFirst()), ops.createString("block"), ops.createString(param1x.getSecond())))));
-        final T structuresTag = ops.createMap(structures.entrySet().stream().map((param1x) -> Pair.of(ops.createString(param1x.getKey().toLowerCase(Locale.ROOT)), ops.createMap(param1x.getValue().entrySet().stream().map((param1xx) -> Pair.of(ops.createString(param1xx.getKey()), ops.createString(param1xx.getValue()))).collect(Collectors.toMap(Pair::getFirst, Pair::getSecond))))).collect(Collectors.toMap(Pair::getFirst, Pair::getSecond)));
-        return new Dynamic<>(ops, ops.createMap(Map.of(ops.createString("layers"), layerTag, ops.createString("biome"), ops.createString(biome), ops.createString("structures"), structuresTag)));
+        var layerTag = layers.stream().map((param1x) -> Map.of("height", param1x.firstInt(), "block", param1x.second())).toList();
+        var structuresTag = structures.entrySet().stream().map((param1x) ->
+                        ObjectReferencePair.of(param1x.getKey().toLowerCase(Locale.ROOT), param1x.getValue().entrySet().stream().map((param1xx) ->
+                                ObjectReferencePair.of(param1xx.getKey(), param1xx.getValue())).collect(Collectors.toMap(ObjectReferencePair::first, ObjectReferencePair::second))))
+                .collect(Collectors.toMap(ObjectReferencePair::first, ObjectReferencePair::second));
+        return new JsonMapType((JsonObject) GsonUtil.GSON.toJsonTree(Map.of("layers", layerTag, "biome", biome, "structures", structuresTag)), false);
     }
 
-    private static Pair<Integer, String> getLayerInfoFromString(final String layerString) {
+    private static IntObjectPair<String> getLayerInfoFromString(final String layerString) {
         final String[] split = layerString.split("\\*", 2);
         int layerCount;
         if (split.length == 2) {
@@ -189,15 +181,15 @@ public final class V1506 {
         }
 
         final String blockName = split[split.length - 1];
-        return Pair.of(layerCount, blockName);
+        return IntObjectPair.of(layerCount, blockName);
     }
 
-    private static List<Pair<Integer, String>> getLayersInfoFromString(final String layersString) {
-        final List<Pair<Integer, String>> ret = new ArrayList<>();
+    private static List<IntObjectPair<String>> getLayersInfoFromString(final String layersString) {
+        final List<IntObjectPair<String>> ret = new ArrayList<>();
         final String[] layers = layersString.split(",");
 
         for (final String layerString : layers) {
-            final Pair<Integer, String> layer = getLayerInfoFromString(layerString);
+            final IntObjectPair<String> layer = getLayerInfoFromString(layerString);
             if (layer == null) {
                 return Collections.emptyList();
             }
@@ -208,5 +200,6 @@ public final class V1506 {
         return ret;
     }
 
-    private V1506() {}
+    private V1506() {
+    }
 }

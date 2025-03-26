@@ -19,7 +19,6 @@ dependencies {
     implementation(libs.slf4j)
     implementation(libs.gson)
     implementation(libs.fastutil)
-    implementation(libs.datafixerupper)
     implementation(libs.bundles.adventure)
 
     testImplementation(platform("org.junit:junit-bom:5.9.1"))

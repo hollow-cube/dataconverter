@@ -11,7 +11,7 @@ import java.io.Reader;
 import java.io.StringReader;
 
 public class GsonUtil {
-    private static final Gson GSON = new Gson();
+    public static final Gson GSON = new Gson();
 
     public static <T> T fromNullableJson(String string, Class<T> type, boolean lenient) {
         return fromNullableJson(new StringReader(string), type, lenient);

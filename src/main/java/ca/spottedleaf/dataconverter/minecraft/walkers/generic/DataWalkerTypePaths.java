@@ -22,10 +22,12 @@ public class DataWalkerTypePaths<T, R> implements DataWalker<MapType<String>> {
                 continue;
             }
 
-            final Object converted = this.type.convert((T)current, fromVersion, toVersion);
+            final Object converted = this.type.convert((T) current, fromVersion, toVersion);
 
             if (converted != null) {
                 data.setGeneric(path, converted);
+            } else {
+                data.setGeneric(path, current);
             }
         }
 

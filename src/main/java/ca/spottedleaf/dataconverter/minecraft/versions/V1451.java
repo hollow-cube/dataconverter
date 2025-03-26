@@ -231,7 +231,7 @@ public final class V1451 {
                             int m = j == 3 ? EntityBlockStateMap.getBlockId("minecraft:" + string5) : IntegerUtil.toInt(string5, 0);
                             int n = l + 1;
                             int o = list2.size() > n ? IntegerUtil.toInt(list2.get(n), 0) : 0;
-                            return (k == 1 ? "" : k + "*") + BlockStateData.getTag(m << 4 | o).get("Name").asString("");
+                            return (k == 1 ? "" : k + "*") + BlockStateData.getTag(m << 4 | o).getString("Name");
                         }).collect(Collectors.joining(",")));
 
                         while (iterator.hasNext()) {

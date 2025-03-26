@@ -1,6 +1,6 @@
 package ca.spottedleaf.dataconverter.minecraft.converters.blockname;
 
-import com.mojang.serialization.Dynamic;
+import net.kyori.adventure.nbt.CompoundBinaryTag;
 
 public final class BlockStateData {
 
@@ -8,7 +8,7 @@ public final class BlockStateData {
     // I believe I can fake this using the worldedit legacy.json file to get all the IDs, but need to look into it.
     // For now, just an error.
 
-    public static Dynamic<?> getTag(int id) {
+    public static CompoundBinaryTag getTag(int id) {
         throw new UnsupportedOperationException("no legacy block states present");
     }
 }
